@@ -8,6 +8,7 @@ import sys
 import subprocess
 from ISStreamer.Streamer import Streamer
 from random import randint
+import requests
 
 # --------- User Settings ---------
 BUCKET_NAME = ":apple: My Weight History"
@@ -71,6 +72,9 @@ class EventProcessor:
         msg.append("Studies show that if there is going to be free food, I will show up 100 percent of the time. You weigh " + str(weight) + " " + unit + "!")
         msg.append("I can multitask. I can eat breakfast and think about lunch at the same time. You weigh " + str(weight) + " " + unit + "!")
         return msg[randint(0, len(msg)-1)]
+	    report = {}
+ 	    report["value1"] = msg
+ 	    requests.post("https://maker.ifttt.com/trigger/IFTTT_TRIGGER/with/key/IFTTT_KEY", data=report) #sends message to Pushbullet via IFTTT
 
     def messageWeighLess(self, weight, weightChange, unit):
         weight = float("{0:.2f}".format(weight))
@@ -92,6 +96,9 @@ class EventProcessor:
         msg.append("I think my soulmate might be carbs. You lost " + str(abs(weightChange)) + " " + unit + " since last time (" + str(weight) + " " + unit + ").")
         msg.append("Great job! We made a video about your progress. Check it out at https://youtu.be/dQw4w9WgXcQ. U lost " + str(abs(weightChange)) + " " + unit + " (" + str(weight) + " " + unit + ").")
         return msg[randint(0, len(msg)-1)]
+		report = {}
+ 		report[“value1”] = msg
+ 		requests.post(“https://maker.ifttt.com/trigger/IFTTT_TRIGGER/with/key/IFTTT_KEY", data=report) #sends message to Pushbullet via IFTTT
 
     def messageWeighMore(self, weight, weightChange, unit):
         weight = float("{0:.2f}".format(weight))
@@ -117,6 +124,9 @@ class EventProcessor:
         msg.append("You gained " + str(weightChange) + " " + unit + " since last time (" + str(weight) + " " + unit + "). I am sure it is all muscle. 💪 ")
         msg.append("Yeah, I'm into fitness... Fit'ness whole burger in my mouth. 🍔👅 You gained " + str(weightChange) + " " + unit + " since last time (" + str(weight) + " " + unit + ").")
         return msg[randint(0, len(msg)-1)]
+		report = {}
+ 		report[“value1”] = msg
+ 		requests.post(“https://maker.ifttt.com/trigger/IFTTT_TRIGGER/with/key/IFTTT_KEY", data=report) #sends message to Pushbullet via IFTTT
 
     def messageWeighSame(self, weight, weightChange, unit):
         weight = float("{0:.2f}".format(weight))
@@ -137,6 +147,9 @@ class EventProcessor:
         msg.append("Love is in the air ... or is that bacon? 🐷 Your weight didn't change much since last time. " + str(weight) + " " + unit + " (" + str(weightChange) + " " + unit + " change)")
         msg.append("That is too much bacon. -Said No One Ever 🐷 Your weight didn't change much since last time. " + str(weight) + " " + unit + " (" + str(weightChange) + " " + unit + " change)")
         return msg[randint(0, len(msg)-1)]
+		report = {}
+ 		report[“value1”] = msg
+ 		requests.post(“https://maker.ifttt.com/trigger/IFTTT_TRIGGER/with/key/IFTTT_KEY", data=report) #sends message to Pushbullet via IFTTT
 
     def mass(self, event):
         if (event.totalWeight > 2):
@@ -164,10 +177,13 @@ class EventProcessor:
                         self._weightChange = self._weight - self._prevWeight
                         if self._weightChange < -0.4:
                             self._msg = self.messageWeighLess(self._weight, self._weightChange, self._unit)
+					  		self.notifyIFTTT(self._weight)
                         elif self._weightChange > 0.4:
                             self._msg = self.messageWeighMore(self._weight, self._weightChange, self._unit)
+					  		self.notifyIFTTT(self._weight)
                         else:
                             self._msg = self.messageWeighSame(self._weight, self._weightChange, self._unit)
+					  		self.notifyIFTTT(self._weight)
                     else:
                         self._msg = self.messageWeighFirst(self._weight, self._unit)
                     print self._msg
@@ -213,7 +229,11 @@ class EventProcessor:
         histogram = collections.Counter(round(num, 1) for num in self._events)
         return histogram.most_common(1)[0][0]
 
-
+	def notifyIFTTT(self, weight): #Update Fitbit Weight (Aria Basic Function)
+		report = {}
+ 		report[“value1”] = weight
+ 		requests.post(“https://maker.ifttt.com/trigger/IFTTT_TRIGGER_FITBIT/with/key/IFTTT_KEY", data=report)
+					  
 class BoardEvent:
     def __init__(self, topLeft, topRight, bottomLeft, bottomRight, buttonPressed, buttonReleased):
 
